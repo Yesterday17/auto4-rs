@@ -7,11 +7,12 @@ type F = String;
 
 pub struct Auto4 {
     lua: Lua,
+    properties: ProjectProperties,
 }
 
 impl Auto4 {
     pub fn new() -> LuaResult<Rc<Self>> {
-        let me = Rc::new(Self { lua: Lua::new() });
+        let me = Rc::new(Self { lua: Lua::new(), properties: Default::default() });
         me.clone().create_global()?;
         Ok(me)
     }
@@ -87,11 +88,6 @@ impl AegisubAutomation for Auto4 {
         todo!()
     }
 
-    fn gettext(&self, untranslated: String) -> String {
-        // TODO: support i18n
-        untranslated
-    }
-
     fn frame_from_ms(&self, ms: i32) -> i32 {
         todo!()
     }
@@ -113,6 +109,6 @@ impl AegisubAutomation for Auto4 {
     }
 
     fn project_properties(&self) -> ProjectProperties {
-        todo!()
+        self.properties.clone()
     }
 }

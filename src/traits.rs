@@ -71,12 +71,12 @@ pub trait AegisubAutomation: Sized {
 
     // return width, height, descent, ext_lead
     fn text_extents(&self, style: Style, text: String) -> (i32, i32, i32, i32);
-    fn gettext(&self, untranslated: String) -> String;
+    fn gettext(&self, untranslated: String) -> String { untranslated }
     fn frame_from_ms(&self, ms: i32) -> i32;
     fn ms_from_frame(&self, frame: i32) -> i32;
     // x_res, y_res, ar, ar_type
     fn video_size(&self) -> (i32, i32, i32, i32);
-    fn keyframes<'a>(&'a self) -> KeyFrames;
+    fn keyframes(&self) -> KeyFrames;
     fn decode_path(&self, encoded_path: String) -> String;
     fn project_properties(&self) -> ProjectProperties;
 }
