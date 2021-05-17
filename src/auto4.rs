@@ -129,8 +129,7 @@ impl AegisubAutomation for Auto4 {
 
     fn decode_path(&self, encoded_path: String) -> String {
         if !encoded_path.starts_with("?") {
-            return
-                encoded_path;
+            return encoded_path;
         }
         match encoded_path.find("\\") {
             Some(end) => {

@@ -1,6 +1,7 @@
 pub mod auto4;
 pub mod traits;
 pub mod models;
+mod file;
 
 #[cfg(test)]
 mod tests {
