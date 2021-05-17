@@ -67,10 +67,33 @@ impl Auto4 {
 
         // auto4_lua_progresssink
         // table.set("progress", todo!());
-        // table.set("debug", lua.create_function(todo!())?);
         // table.set("dialog", todo!());
 
+        // debug
+        table.set("_log", lua.create_function(|_, (level, text): (u8, String)| {
+            let level = match level {
+                0 | 1 => log::Level::Error,
+                2 => log::Level::Warn,
+                3 => log::Level::Info,
+                4 => log::Level::Debug,
+                _ => log::Level::Trace,
+            };
+            log::log!(level, "{}", text);
+            Ok(())
+        })?);
+
         lua.globals().set("aegisub", table)?;
+        lua.load(r#"
+        aegisub.out = function(first, second, ...)
+            if type(first) ~= "number" then
+                aegisub._log(3, string.format(first, second, ...))
+            else
+                aegisub._log(first, string.format(second, ...))
+            end
+        end
+        aegisub.debug = {}
+        aegisub.debug.out = aegisub.out
+        "#).exec()?;
         Ok(())
     }
 }
@@ -105,7 +128,29 @@ impl AegisubAutomation for Auto4 {
     }
 
     fn decode_path(&self, encoded_path: String) -> String {
-        todo!()
+        if !encoded_path.starts_with("?") {
+            return
+                encoded_path;
+        }
+        match encoded_path.find("\\") {
+            Some(end) => {
+                let specifier = &encoded_path[1..end];
+                // TODO: paths
+                // https://aegi.vmoe.info/docs/3.2/Aegisub_path_specifiers/
+                let prefix = match specifier {
+                    "data" => "",
+                    "user" => "",
+                    "temp" => "",
+                    "local" => "",
+                    "script" => "",
+                    "video" => "",
+                    "audio" => "",
+                    _ => "",
+                };
+                format!("{}/{}", prefix, &encoded_path[end + 1..])
+            }
+            None => encoded_path
+        }
     }
 
     fn project_properties(&self) -> ProjectProperties {
