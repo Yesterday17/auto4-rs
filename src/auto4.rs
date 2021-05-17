@@ -1,6 +1,6 @@
 use mlua::prelude::*;
 use std::rc::Rc;
-use crate::models::{Style, KeyFrames, ProjectProperties};
+use crate::models::{ASSStyle, KeyFrames, ProjectProperties};
 use crate::traits::AegisubAutomation;
 
 type F = String;
@@ -39,7 +39,7 @@ impl Auto4 {
         )?)?;
 
         let me = self.clone();
-        table.set("text_extents", lua.create_function(move |_, (style, text): (Style, String)| Ok(me.text_extents(style, text)))?)?;
+        table.set("text_extents", lua.create_function(move |_, (style, text): (ASSStyle, String)| Ok(me.text_extents(style, text)))?)?;
         let me = self.clone();
         table.set("gettext", lua.create_function(move |_, untranslated: String| Ok(me.gettext(untranslated)))?)?;
         let me = self.clone();
@@ -80,7 +80,7 @@ impl Auto4 {
             };
             log::log!(level, "{}", text);
             Ok(())
-        })?);
+        })?)?;
 
         lua.globals().set("aegisub", table)?;
         lua.load(r#"
@@ -107,7 +107,7 @@ impl AegisubAutomation for Auto4 {
         todo!()
     }
 
-    fn text_extents(&self, style: Style, text: String) -> (i32, i32, i32, i32) {
+    fn text_extents(&self, style: ASSStyle, text: String) -> (i32, i32, i32, i32) {
         todo!()
     }
 
