@@ -1,4 +1,4 @@
-use crate::models::{ASSStyle, ProjectProperties, KeyFrames};
+use crate::models::{ProjectProperties, KeyFrames, Style};
 
 // TODO: remove placeholder type F
 type F = String;
@@ -70,7 +70,7 @@ pub trait AegisubAutomation: Sized {
     fn register_filter(&self, name: String, description: String, priority: i32, processing_function: F, configuration_panel_provider: Option<F>);
 
     // return width, height, descent, ext_lead
-    fn text_extents(&self, style: ASSStyle, text: String) -> (i32, i32, i32, i32);
+    fn text_extents(&self, style: Style, text: String) -> (i32, i32, i32, i32);
     fn gettext(&self, untranslated: String) -> String { untranslated }
     fn frame_from_ms(&self, ms: i32) -> i32;
     fn ms_from_frame(&self, frame: i32) -> i32;
