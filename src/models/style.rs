@@ -56,10 +56,10 @@ impl UserData for Style {
         field_this_str!(fields, "fontname", font);
         field_this!(fields, "fontsize", font_size);
 
-        fields.add_field_method_get("color1", |lua, this| Ok(lua.create_string(&(this.primary_color.to_ass_style_formatted() + "&"))?));
-        fields.add_field_method_get("color2", |lua, this| Ok(lua.create_string(&(this.secondary_color.to_ass_style_formatted() + "&"))?));
-        fields.add_field_method_get("color3", |lua, this| Ok(lua.create_string(&(this.outline_color.to_ass_style_formatted() + "&"))?));
-        fields.add_field_method_get("color4", |lua, this| Ok(lua.create_string(&(this.shadow_color.to_ass_style_formatted() + "&"))?));
+        field_this_str!(fields, "color1", primary_color, to_ass_style_formatted);
+        field_this_str!(fields, "color2", secondary_color, to_ass_style_formatted);
+        field_this_str!(fields, "color3", outline_color, to_ass_style_formatted);
+        field_this_str!(fields, "color4", shadow_color, to_ass_style_formatted);
 
         field_this!(fields, bold);
         field_this!(fields, italic);

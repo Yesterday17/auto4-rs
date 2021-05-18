@@ -33,7 +33,7 @@ impl Time {
 pub struct KeyFrames;
 
 impl<'lua> ToLua<'lua> for KeyFrames {
-    fn to_lua(self, lua: &'lua Lua) -> LuaResult<LuaValue<'lua>> {
+    fn to_lua(self, _lua: &'lua Lua) -> LuaResult<LuaValue<'lua>> {
         todo!()
     }
 }

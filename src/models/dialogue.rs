@@ -38,26 +38,26 @@ impl AssDialogue {
 
 impl UserData for AssDialogue {
     fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
-        fields.add_field_method_get("class", |lua, _| Ok(lua.create_string("dialogue")?));
-        fields.add_field_method_get("section", |lua, _| Ok(lua.create_string("[Events]")?));
+        field_raw_str!(fields, "class", "dialogue");
+        field_raw_str!(fields, "section", "[Events]");
 
         fields.add_field_method_get("raw", |lua, this| Ok(lua.create_string(&this.entry_data())?));
-        fields.add_field_method_get("comment", |_, this| Ok(this.comment));
-        fields.add_field_method_get("layer", |_, this| Ok(this.layer));
+        field_this!(fields, comment);
+        field_this!(fields, layer);
 
-        fields.add_field_method_get("start_time", |_, this| Ok(this.start_time.get()));
-        fields.add_field_method_get("end_time", |_, this| Ok(this.end_time.get()));
+        field_this!(fields, start_time, get);
+        field_this!(fields, end_time, get);
 
-        fields.add_field_method_get("style", |lua, this| Ok(lua.create_string(&this.style)?));
-        fields.add_field_method_get("actor", |lua, this| Ok(lua.create_string(&this.actor)?));
-        fields.add_field_method_get("effect", |lua, this| Ok(lua.create_string(&this.effect)?));
+        field_this_str!(fields, style);
+        field_this_str!(fields, actor);
+        field_this_str!(fields, effect);
 
-        fields.add_field_method_get("margin_l", |_, this| Ok(this.margin_left));
-        fields.add_field_method_get("margin_r", |_, this| Ok(this.margin_right));
-        fields.add_field_method_get("margin_t", |_, this| Ok(this.margin_vertical));
-        fields.add_field_method_get("margin_b", |_, this| Ok(this.margin_vertical));
+        field_this!(fields, "margin_l", margin_left);
+        field_this!(fields, "margin_r", margin_right);
+        field_this!(fields, "margin_t", margin_vertical);
+        field_this!(fields, "margin_b", margin_vertical);
 
-        fields.add_field_method_get("text", |lua, this| Ok(lua.create_string(&this.text)?));
+        field_this_str!(fields, text);
 
         // TODO: extra
         fields.add_field_method_get("extra", |lua, _| lua.create_table());

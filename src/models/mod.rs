@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! field_raw {
     ($field: ident, $key: expr, $val: expr) => {
-        $field.add_field_method_get($key, |lua, _| Ok($val));
+        $field.add_field_method_get($key, |_, _| Ok($val));
     };
 }
 
@@ -18,8 +18,16 @@ macro_rules! field_this {
         $field.add_field_method_get(stringify!($key), |_, this| Ok(this.$key));
     };
 
+    ($field: ident, $key: ident, $call: ident) => {
+        $field.add_field_method_get(stringify!($key), |_, this| Ok(this.$key.$call()));
+    };
+
     ($field: ident, $key: expr, $val: ident) => {
         $field.add_field_method_get($key, |_, this| Ok(this.$val));
+    };
+
+    ($field: ident, $key: expr, $val: ident, $call: ident) => {
+        $field.add_field_method_get($key, |_, this| Ok(this.$val.$call()));
     };
 }
 
@@ -29,8 +37,16 @@ macro_rules! field_this_str {
         $field.add_field_method_get(stringify!($key), |lua, this| lua.create_string(&this.$key));
     };
 
+    ($field: ident, $key: ident, $call: ident) => {
+        $field.add_field_method_get(stringify!($key), |lua, this| lua.create_string(&this.$key.$call()));
+    };
+
     ($field: ident, $key: expr, $val: ident) => {
         $field.add_field_method_get($key, |lua, this| lua.create_string(&this.$val));
+    };
+
+    ($field: ident, $key: expr, $val: ident, $call: ident) => {
+        $field.add_field_method_get($key, |lua, this| lua.create_string(&this.$val.$call()));
     };
 }
 
