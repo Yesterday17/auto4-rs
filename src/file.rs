@@ -1,7 +1,8 @@
 use mlua::{UserData, UserDataMethods, MetaMethod};
 use mlua::prelude::*;
+use std::fs::read_to_string;
+use std::path::Path;
 
-#[derive(Default, Debug, Clone)]
 pub struct LuaAssFile {
     can_modify: bool,
     can_set_undo: bool,
@@ -10,13 +11,28 @@ pub struct LuaAssFile {
     last_modification_type: i32,
 }
 
+impl LuaAssFile {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Self {
+        Self::parse(&read_to_string(path).expect("failed to read"))
+    }
+
+    pub fn parse(input: &str) -> Self {
+        Self {
+            can_modify: false,
+            can_set_undo: false,
+            last_modification_type: 0,
+        }
+    }
+}
+
 impl UserData for LuaAssFile {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
-        methods.add_meta_function(MetaMethod::Index, |lua, (this, index): (LuaAssFile, LuaValue)| -> LuaResult<LuaValue> {
+        methods.add_meta_method(MetaMethod::Index, |lua, this, index: LuaValue| -> LuaResult<LuaValue> {
             match index {
                 LuaValue::Integer(index) => {
                     // AssEntryToLua(L, index - 1);
-                    Ok(LuaValue::UserData(lua.create_userdata(this)?))
+                    // Ok(LuaValue::UserData(lua.create_userdata(this)?))
+                    Ok(LuaValue::Integer(0))
                 }
                 LuaValue::String(field) => {
                     match field.to_str() {
@@ -40,7 +56,7 @@ impl UserData for LuaAssFile {
                 _ => todo!() // err Attempt to index a Subtitle File object with value of type
             }
         });
-        methods.add_meta_function(MetaMethod::Len, |lua, this: LuaAssFile| -> LuaResult<LuaInteger> {
+        methods.add_meta_method(MetaMethod::Len, |lua, this, _: ()| -> LuaResult<LuaInteger> {
             Ok(0)
         });
         // table.set("__newindex", lua.create_function(|_, ()| todo!())?)?;

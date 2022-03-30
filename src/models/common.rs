@@ -1,19 +1,54 @@
+use std::num::ParseIntError;
+use std::str::FromStr;
 use mlua::ToLua;
 use mlua::prelude::*;
+use regex::Regex;
 
-pub struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
-    a: u8,
-}
+#[derive(Debug, Default)]
+pub struct Color(u32);
 
 impl Color {
+    pub const DEFAULT_PRIMARY: Color = Color(0xffffff00);
+    pub const DEFAULT_SECONDARY: Color = Color(0x00ffff00);
+    pub const DEFAULT: Color = Color(0x00000000);
+
+    pub fn new(color: u32) -> Color {
+        Color(color)
+    }
+
     pub fn to_ass_style_formatted(&self) -> String {
-        format!("&H{:2X}{:2X}{:2X}{:2X}", self.a, self.b, self.g, self.r)
+        format!("&H{:8X}", self.0)
     }
 }
 
+impl FromStr for Color {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let input = s.to_ascii_lowercase();
+        let mut input = input.trim();
+
+        // skip signs
+        loop {
+            if input.starts_with("+") || input.starts_with("-") {
+                input = &input[1..];
+            } else {
+                break;
+            }
+        }
+
+        let base = if s.starts_with("&h") || s.starts_with("0x") {
+            input = &input[2..];
+            16
+        } else {
+            10
+        };
+
+        u32::from_str_radix(input, base).map(|c| Color::new(c.swap_bytes()))
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Time(u32);
 
 impl Time {
@@ -29,6 +64,19 @@ impl Time {
     }
 }
 
+impl FromStr for Time {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let regex = Regex::new(r"^(?P<h>\d+):(?P<m>\d+):(?P<s>\d+)\.(?P<ms>\d+)$").unwrap();
+        let result = regex.captures(s).ok_or(())?;
+        let h = result.name("h").unwrap().as_str().parse::<u32>().unwrap();
+        let m = result.name("m").unwrap().as_str().parse::<u32>().unwrap();
+        let s = result.name("s").unwrap().as_str().parse::<u32>().unwrap();
+        let ms = result.name("ms").unwrap().as_str().parse::<u32>().unwrap();
+        Ok(Time(((h * 60 + m) * 60 + s) * 1000 + ms * 10))
+    }
+}
 
 pub struct KeyFrames;
 

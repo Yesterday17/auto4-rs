@@ -1,32 +1,25 @@
 use mlua::{UserData, UserDataFields};
 use crate::models::common::Time;
 
+#[derive(Debug)]
 pub struct AssDialogue {
-    row: i32,
     /// Is this a comment line?
-    comment: bool,
+    pub comment: bool,
     /// Layer number
-    layer: i32,
+    pub layer: i32,
 
-    margin_left: i32,
-    margin_right: i32,
-    margin_vertical: i32,
+    pub margin_left: i32,
+    pub margin_right: i32,
+    pub margin_vertical: i32,
 
-    /// Starting time
-    start_time: Time,
-    /// Ending time
-    end_time: Time,
+    pub start_time: Time,
+    pub end_time: Time,
 
-    /// Style name
-    style: String,
-    /// Actor name
-    actor: String,
-    /// Effect name
-    effect: String,
-    /// IDs of extra data entries for line
-    extra_ids: Vec<u32>,
-    /// Raw text data
-    text: String,
+    pub style: String,
+    pub actor: String,
+    pub effect: String,
+
+    pub text: String,
 }
 
 impl AssDialogue {
@@ -60,6 +53,7 @@ impl UserData for AssDialogue {
         field_this_str!(fields, text);
 
         // TODO: extra
+        // https://github.com/Aegisub/Aegisub/blob/6f546951b4f004da16ce19ba638bf3eedefb9f31/src/auto4_lua_assfile.cpp#L184-L191
         fields.add_field_method_get("extra", |lua, _| lua.create_table());
     }
 }

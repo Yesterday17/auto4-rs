@@ -1,8 +1,9 @@
 use mlua::{UserData, UserDataFields};
 
+#[derive(Debug)]
 pub struct ASSInfo {
-    key: String,
-    value: String,
+    pub key: String,
+    pub value: String,
 }
 
 impl ASSInfo {

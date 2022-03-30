@@ -2,47 +2,48 @@ use crate::models::common::Color;
 use mlua::{UserData, UserDataFields};
 
 // https://github.com/Aegisub/Aegisub/blob/6f546951b4f004da16ce19ba638bf3eedefb9f31/src/ass_style.h
+#[derive(Debug)]
 pub struct Style {
-    raw: String,
+    pub raw: String,
 
-    name: String,
-    font: String,
-    font_size: u32,
+    pub name: String,
+    pub font: String,
+    pub font_size: f32,
 
-    primary_color: Color,
-    secondary_color: Color,
-    outline_color: Color,
-    shadow_color: Color,
+    pub primary_color: Color,
+    pub secondary_color: Color,
+    pub outline_color: Color,
+    pub shadow_color: Color,
 
-    bold: bool,
-    italic: bool,
-    underline: bool,
-    strikeout: bool,
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
+    pub strikeout: bool,
 
     /// Font x scale with 100 = 100%
-    scale_x: f32,
+    pub scale_x: f32,
     /// Font y scale with 100 = 100%
-    scale_y: f32,
+    pub scale_y: f32,
     /// Additional spacing between characters in pixels
-    spacing: f32,
+    pub spacing: f32,
     /// Counterclockwise z rotation in degrees
-    angle: f32,
+    pub angle: f32,
 
     /// 1: Normal; 3: Opaque box; others are unused in Aegisub
-    border_style: u8,
+    pub border_style: u8,
     /// Outline width in pixels
-    outline_w: f32,
+    pub outline: f32,
     /// Shadow distance in pixels
-    shadow_w: f32,
+    pub shadow: f32,
     /// \an-style line alignment
-    alignment: u8,
+    pub alignment: u8,
 
-    margin_left: i32,
-    margin_right: i32,
-    margin_vertical: i32,
+    pub margin_left: i32,
+    pub margin_right: i32,
+    pub margin_vertical: i32,
 
     /// ASS font encoding needed for some non-unicode fonts
-    encoding: i32,
+    pub encoding: i32,
 }
 
 impl UserData for Style {
@@ -73,8 +74,8 @@ impl UserData for Style {
         field_this!(fields, angle);
 
         field_this!(fields, "borderstyle", border_style);
-        field_this!(fields, "outline", outline_w);
-        field_this!(fields, "shadow", shadow_w);
+        field_this!(fields, "outline", outline);
+        field_this!(fields, "shadow", shadow);
 
         field_this!(fields, "align", alignment);
 

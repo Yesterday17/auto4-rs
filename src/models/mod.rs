@@ -1,3 +1,5 @@
+/// [https://github.com/Aegisub/Aegisub/blob/6f546951b4f004da16ce19ba638bf3eedefb9f31/src/auto4_lua_assfile.cpp#L148]
+
 #[macro_export]
 macro_rules! field_raw {
     ($field: ident, $key: expr, $val: expr) => {
