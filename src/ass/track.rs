@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use mlua::{AnyUserData, MetaMethod, UserData, UserDataMethods};
 use mlua::prelude::*;
-use crate::models::{Event, ASSInfo, Color, Style};
+use super::{Event, ASSInfo, Color, Style};
 
 #[derive(Debug)]
 pub struct AssTrack {
@@ -56,7 +56,7 @@ impl UserData for AssTrack {
                 _ => todo!()
             }
         });
-        methods.add_meta_method(MetaMethod::Len, |lua, this, _: ()| -> LuaResult<LuaInteger> {
+        methods.add_meta_method(MetaMethod::Len, |_, this, _: ()| -> LuaResult<LuaInteger> {
             Ok(this.len() as i64)
         });
         // table.set("__newindex", lua.create_function(|_, ()| todo!())?)?;

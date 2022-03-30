@@ -1,9 +1,8 @@
 use mlua::prelude::*;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use crate::models::{KeyFrames, ProjectProperties, Style};
+use crate::ass::{KeyFrames, ProjectProperties, Style, AssTrack};
 use crate::traits::AegisubAutomation;
-use crate::track::AssTrack;
 
 type F = String;
 

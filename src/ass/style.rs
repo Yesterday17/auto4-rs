@@ -1,4 +1,4 @@
-use crate::models::common::Color;
+use super::Color;
 use mlua::{UserData, UserDataFields};
 
 // https://github.com/Aegisub/Aegisub/blob/6f546951b4f004da16ce19ba638bf3eedefb9f31/src/ass_style.h

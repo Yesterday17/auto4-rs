@@ -56,8 +56,10 @@ mod common;
 mod info;
 mod event;
 mod style;
+mod track;
 
 pub use common::*;
 pub use info::*;
 pub use event::*;
 pub use style::*;
+pub use track::*;

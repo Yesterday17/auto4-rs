@@ -1,4 +1,4 @@
-use crate::models::{ProjectProperties, KeyFrames, Style};
+use crate::ass::{ProjectProperties, KeyFrames, Style};
 
 // TODO: remove placeholder type F
 type F = String;

@@ -1,5 +1,5 @@
 use mlua::{UserData, UserDataFields};
-use crate::models::common::Time;
+use super::Time;
 
 #[derive(Debug)]
 pub struct Event {
