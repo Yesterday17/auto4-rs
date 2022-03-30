@@ -1,5 +1,4 @@
 pub mod auto4;
-pub mod traits;
 pub mod ass;
 
 #[cfg(test)]
@@ -42,8 +41,8 @@ Dialogue: 0,0:00:00.00,0:00:04.99,staff omake,,0,0,0,,\\N{\\fad(300,300)}片源�
 Dialogue: 0,0:00:00.00,0:00:04.99,staff omake,,0,0,0,,\\N{\\fad(300,300)}翻译：八足  MochizukiShigure
 Dialogue: 0,0:00:00.00,0:00:04.99,staff omake,,0,0,0,,\\N{\\fad(300,300)}校对：后母辣酱
 Dialogue: 0,0:00:00.00,0:00:04.99,staff omake,,0,0,0,,\\N{\\fad(300,300)}时间轴：某昨P").unwrap();
-        assert_eq!("19", auto4.eval_ret_string(r#"#aegisub.subtitle"#).unwrap());
-        assert_eq!("info", auto4.eval_ret_string(r#"aegisub.subtitle[0].class"#).unwrap());
-        assert_eq!("style", auto4.eval_ret_string(r#"aegisub.subtitle[7].class"#).unwrap());
+        assert_eq!("19", auto4.load_script(r#"#aegisub.subtitle"#).unwrap());
+        assert_eq!("info", auto4.load_script(r#"aegisub.subtitle[0].class"#).unwrap());
+        assert_eq!("style", auto4.load_script(r#"aegisub.subtitle[7].class"#).unwrap());
     }
 }

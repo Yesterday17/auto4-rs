@@ -1,8 +1,9 @@
 use mlua::prelude::*;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
+use mlua::UserData;
 use crate::ass::{KeyFrames, ProjectProperties, Style, AssTrack};
-use crate::traits::AegisubAutomation;
+use crate::field_raw;
 
 type F = String;
 
@@ -23,30 +24,13 @@ impl Auto4 {
         Ok(me)
     }
 
-    pub fn load_script<P>(self, script: &str) -> Self {
-        todo!()
-    }
-
-    pub fn eval_ret_string(&self, code: &str) -> LuaResult<String> {
-        self.lua.load(code).eval::<String>()
+    pub fn load_script(&self, code: &str) -> LuaResult<String> {
+        self.lua.load(code).eval()
     }
 
     fn create_global(self: Rc<Self>) -> LuaResult<()> {
         let lua = &self.lua;
         let table = lua.create_table()?;
-        // auto4_lua
-        table.set("lua_automation_version", 4)?;
-
-        let me = self.clone();
-        table.set("register_macro", lua.create_function(
-            move |_, (name, description, processing_function, validation_function, is_active_function): (String, String, F, Option<F>, Option<F>)|
-                Ok(me.register_macro(name, description, processing_function, validation_function, is_active_function)),
-        )?)?;
-        let me = self.clone();
-        table.set("register_filter", lua.create_function(
-            move |_, (name, description, priority, processing_function, configuration_panel_provider): (String, String, i32, F, Option<F>)|
-                Ok(me.register_filter(name, description, priority, processing_function, configuration_panel_provider))
-        )?)?;
 
         // let me = self.clone();
         // table.set("text_extents", lua.create_function(move |_, (style, text): (Style, String)| Ok(me.text_extents(style, text)))?)?;
@@ -112,17 +96,21 @@ impl Auto4 {
     }
 }
 
-impl AegisubAutomation for Auto4 {
-    fn register_macro(&self, name: String, description: String, processing_function: F, validation_function: Option<F>, is_active_function: Option<F>) {
+impl Auto4 {
+    fn register_macro(&mut self, name: String, description: String, processing_function: F, validation_function: Option<F>, is_active_function: Option<F>) {
         todo!()
     }
 
-    fn register_filter(&self, name: String, description: String, priority: i32, processing_function: F, configuration_panel_provider: Option<F>) {
+    fn register_filter(&mut self, name: String, description: String, priority: i32, processing_function: F, configuration_panel_provider: Option<F>) {
         todo!()
     }
 
     fn text_extents(&self, style: Style, text: String) -> (i32, i32, i32, i32) {
         todo!()
+    }
+
+    fn gettext(&self, untranslated: String) -> String {
+        untranslated
     }
 
     fn frame_from_ms(&self, ms: i32) -> i32 {
@@ -168,5 +156,24 @@ impl AegisubAutomation for Auto4 {
 
     fn project_properties(&self) -> ProjectProperties {
         self.properties.clone()
+    }
+}
+
+impl UserData for Auto4 {
+    fn add_fields<'lua, F: LuaUserDataFields<'lua, Self>>(fields: &mut F) {
+        // lua_automation_version
+        field_raw!(fields, "lua_automation_version", 4);
+    }
+
+    fn add_methods<'lua, M: LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        // register_macro
+        methods.add_method_mut("register_macro", |lua, me, (name, description, processing_function, validation_function, is_active_function): (String, String, F, Option<F>, Option<F>)|
+            Ok(me.register_macro(name, description, processing_function, validation_function, is_active_function)),
+        );
+
+        // register_filter
+        methods.add_method_mut("register_filter", |_, me, (name, description, priority, processing_function, configuration_panel_provider): (String, String, i32, F, Option<F>)|
+            Ok(me.register_filter(name, description, priority, processing_function, configuration_panel_provider)),
+        );
     }
 }
