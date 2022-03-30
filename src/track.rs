@@ -1,5 +1,69 @@
 use std::str::FromStr;
-use crate::models::{AssDialogue, ASSInfo, Color, Style};
+use std::sync::{Arc, Mutex};
+use mlua::{AnyUserData, MetaMethod, UserData, UserDataMethods};
+use mlua::prelude::*;
+use crate::models::{Event, ASSInfo, Color, Style};
+
+#[derive(Debug)]
+pub struct AssTrack {
+    info: Vec<Arc<Mutex<ASSInfo>>>,
+    styles: Vec<Arc<Mutex<Style>>>,
+    events: Vec<Arc<Mutex<Event>>>,
+}
+
+impl AssTrack {
+    pub fn len(&self) -> usize {
+        self.info.len() + self.styles.len() + self.events.len()
+    }
+
+    pub fn index<'lua>(&self, lua: &'lua Lua, index: usize) -> LuaResult<AnyUserData<'lua>> {
+        if index < self.info.len() {
+            lua.create_userdata(self.info[index].clone())
+        } else if index < self.info.len() + self.styles.len() {
+            lua.create_userdata(self.styles[index - self.info.len()].clone())
+        } else {
+            lua.create_userdata(self.events[index - self.info.len() - self.styles.len()].clone())
+        }
+    }
+}
+
+impl UserData for AssTrack {
+    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_meta_method_mut(MetaMethod::Index, |lua, this, index: LuaValue| -> LuaResult<LuaValue> {
+            match index {
+                LuaValue::Integer(index) => {
+                    Ok(LuaValue::UserData(this.index(lua, index as usize)?))
+                }
+                LuaValue::String(field) => {
+                    match field.to_str() {
+                        Ok("n") => Ok(LuaValue::Integer(this.len() as i64)),
+
+                        Ok("delete") => todo!(),
+                        Ok("deleterange") => todo!(),
+                        Ok("insert") => todo!(),
+                        Ok("append") => todo!(),
+                        Ok("script_resolution") => todo!(),
+                        // err Invalid indexing in Subtitle File object
+                        // Invalid indexing in Subtitle File object: '%s'
+                        Ok(field) => {
+                            println!("{field}");
+                            todo!()
+                        }
+                        Err(_) => todo!()
+                    }
+                }
+                // Attempt to index a Subtitle File object with value of type '%s'.
+                _ => todo!()
+            }
+        });
+        methods.add_meta_method(MetaMethod::Len, |lua, this, _: ()| -> LuaResult<LuaInteger> {
+            Ok(this.len() as i64)
+        });
+        // table.set("__newindex", lua.create_function(|_, ()| todo!())?)?;
+        // table.set("__gc", lua.create_function(|_, ()| todo!())?)?;
+        // table.set("__ipairs", lua.create_function(|_, ()| todo!())?)?;
+    }
+}
 
 fn skip_spaces(input: &str) -> &str {
     input.trim_start_matches(&[' ', '\t'])
@@ -21,37 +85,15 @@ enum ParserState {
 }
 
 #[derive(Debug)]
-struct AssTrack {
+struct AssTrackParser {
     parser_state: ParserState,
     style_format: Vec<String>,
     event_format: Vec<String>,
 
-    info: Vec<ASSInfo>,
-    styles: Vec<Style>,
-    events: Vec<AssDialogue>,
+    track: AssTrack,
 }
 
-impl AssTrack {
-    fn new() -> Self {
-        Self {
-            parser_state: ParserState::Unknown,
-            // https://github.com/libass/libass/blob/5f0e8450f834894b2745238e3d32ff4878710ec8/libass/ass.c#L44-L48
-            style_format: vec![
-                "Name", "Fontname", "Fontsize", "PrimaryColour", "SecondaryColour",
-                "OutlineColour", "BackColour", "Bold", "Italic", "Underline", "StrikeOut",
-                "ScaleX", "ScaleY", "Spacing", "Angle", "BorderStyle", "Outline", "Shadow",
-                "Alignment", "MarginL", "MarginR", "MarginV", "Encoding",
-            ].into_iter().map(|s| s.to_string()).collect(),
-            event_format: vec![
-                "Layer", "Start", "End", "Style", "Name",
-                "MarginL", "MarginR", "MarginV", "Effect", "Text",
-            ].into_iter().map(|s| s.to_string()).collect(),
-            info: Vec::new(),
-            styles: Vec::new(),
-            events: Vec::new(),
-        }
-    }
-
+impl AssTrackParser {
     fn process_line<'input>(&mut self, input: &'input str) -> &'input str {
         let input = skip_spaces(input);
         if input.starts_with("[Script Info]") {
@@ -89,7 +131,7 @@ impl AssTrack {
         let line_end = input.find('\n').unwrap_or(input.len());
         let line = &input[..line_end];
         let (key, value) = line.split_once(':').unwrap_or((input, ""));
-        self.info.push(ASSInfo { key: key.trim().to_string(), value: value.trim().to_string() });
+        self.track.info.push(Arc::new(Mutex::new(ASSInfo { key: key.trim().to_string(), value: value.trim().to_string() })));
         &input[line_end..]
     }
 
@@ -160,7 +202,7 @@ impl AssTrack {
 
                 line = line_remaining;
             }
-            self.styles.push(style);
+            self.track.styles.push(Arc::new(Mutex::new(style)));
         }
 
         &input[line_end..]
@@ -176,7 +218,8 @@ impl AssTrack {
             || line.strip_prefix("Comment:").map(|s| (true, s)),
             |s| Some((false, s)),
         ) {
-            let mut event = AssDialogue {
+            let mut event = Event {
+                raw: line.to_string(),
                 comment: is_comment,
                 layer: 0,
                 margin_left: 0,
@@ -214,7 +257,7 @@ impl AssTrack {
                     break;
                 }
             }
-            self.events.push(event);
+            self.track.events.push(Arc::new(Mutex::new(event)));
         }
 
         &input[line_end..]
@@ -241,7 +284,25 @@ impl FromStr for AssTrack {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut track = AssTrack::new();
+        let mut parser = AssTrackParser {
+            parser_state: ParserState::Unknown,
+            // https://github.com/libass/libass/blob/5f0e8450f834894b2745238e3d32ff4878710ec8/libass/ass.c#L44-L48
+            style_format: vec![
+                "Name", "Fontname", "Fontsize", "PrimaryColour", "SecondaryColour",
+                "OutlineColour", "BackColour", "Bold", "Italic", "Underline", "StrikeOut",
+                "ScaleX", "ScaleY", "Spacing", "Angle", "BorderStyle", "Outline", "Shadow",
+                "Alignment", "MarginL", "MarginR", "MarginV", "Encoding",
+            ].into_iter().map(|s| s.to_string()).collect(),
+            event_format: vec![
+                "Layer", "Start", "End", "Style", "Name",
+                "MarginL", "MarginR", "MarginV", "Effect", "Text",
+            ].into_iter().map(|s| s.to_string()).collect(),
+            track: AssTrack {
+                info: Vec::new(),
+                styles: Vec::new(),
+                events: Vec::new(),
+            },
+        };
         let mut input = s;
 
         loop {
@@ -250,10 +311,10 @@ impl FromStr for AssTrack {
                 break;
             }
 
-            input = track.process_line(input);
+            input = parser.process_line(input);
         }
 
-        Ok(track)
+        Ok(parser.track)
     }
 }
 

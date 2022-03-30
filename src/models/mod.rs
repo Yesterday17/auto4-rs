@@ -54,10 +54,10 @@ macro_rules! field_this_str {
 
 mod common;
 mod info;
-mod dialogue;
+mod event;
 mod style;
 
 pub use common::*;
 pub use info::*;
-pub use dialogue::*;
+pub use event::*;
 pub use style::*;

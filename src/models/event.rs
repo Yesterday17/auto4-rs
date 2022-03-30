@@ -2,10 +2,10 @@ use mlua::{UserData, UserDataFields};
 use crate::models::common::Time;
 
 #[derive(Debug)]
-pub struct AssDialogue {
-    /// Is this a comment line?
+pub struct Event {
+    pub raw: String,
+
     pub comment: bool,
-    /// Layer number
     pub layer: i32,
 
     pub margin_left: i32,
@@ -22,14 +22,14 @@ pub struct AssDialogue {
     pub text: String,
 }
 
-impl AssDialogue {
+impl Event {
     pub fn entry_data(&self) -> String {
         // TODO
         String::new()
     }
 }
 
-impl UserData for AssDialogue {
+impl UserData for Event {
     fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
         field_raw_str!(fields, "class", "dialogue");
         field_raw_str!(fields, "section", "[Events]");

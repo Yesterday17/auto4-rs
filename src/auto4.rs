@@ -1,48 +1,31 @@
 use mlua::prelude::*;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use crate::models::{KeyFrames, ProjectProperties, Style};
 use crate::traits::AegisubAutomation;
-use std::path::{PathBuf, Path};
-use crate::file::LuaAssFile;
+use crate::track::AssTrack;
 
 type F = String;
 
 pub struct Auto4 {
     lua: Lua,
     properties: ProjectProperties,
-
-    path_script: Option<PathBuf>,
-    path_video: Option<PathBuf>,
-    path_audio: Option<PathBuf>,
-
-    ass: Option<LuaAssFile>,
+    ass: Arc<Mutex<AssTrack>>,
 }
 
 impl Auto4 {
-    pub fn new() -> LuaResult<Rc<Self>> {
+    pub fn new(subtitle: &str) -> LuaResult<Rc<Self>> {
         let me = Rc::new(Self {
             lua: Lua::new(),
             properties: Default::default(),
-
-            path_script: None,
-            path_video: None,
-            path_audio: None,
-
-            ass: None,
+            ass: Arc::new(Mutex::new(subtitle.parse().unwrap())),
         });
         me.clone().create_global()?;
         Ok(me)
     }
 
-    pub fn load_subtitle<P>(mut self, path: P) -> Self
-        where P: AsRef<Path> {
-        self.ass = Some(LuaAssFile::from_file(path));
-        self
-    }
-
-    pub fn load_script<P>(self, path: P) -> Self
-        where P: AsRef<PathBuf> {
-        self
+    pub fn load_script<P>(self, script: &str) -> Self {
+        todo!()
     }
 
     pub fn eval_ret_string(&self, code: &str) -> LuaResult<String> {
@@ -109,6 +92,10 @@ impl Auto4 {
             log::log!(level, "{}", text);
             Ok(())
         })?)?;
+
+        // FIXME: remove this debug property
+        let me = self.clone();
+        table.set("subtitle", lua.create_userdata(me.ass.clone())?);
 
         lua.globals().set("aegisub", table)?;
         lua.load(r#"
